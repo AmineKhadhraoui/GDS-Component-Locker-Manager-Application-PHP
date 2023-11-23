@@ -1,0 +1,53 @@
+<?php
+// Établir une connexion à la base de données SQL Server
+$serverName = "192.168.120.222\GDS_SQL";
+$databaseName = "Traceability";
+$uid = "TraUser";
+$pass = "#IdeaL2000#";
+
+$connectionOptions = [
+    "Database" => $databaseName,
+    "Uid" => $uid,
+    "PWD" => $pass,
+    "TrustServerCertificate" => true
+];
+
+// Establish connection to the database
+$connect = sqlsrv_connect($serverName, $connectionOptions);
+
+// Initialiser les variables à afficher
+$message = "";
+$messageClass = ""; // Contiendra la classe Bootstrap
+$isDisabled = ""; // Contiendra l'attribut "disabled"
+
+// Vérifier si le formulaire a été soumis
+if (isset($_POST['ni'])) {
+    // Récupérer la valeur saisie par l'utilisateur
+    $valeurRecherchee = $_POST['ni'];
+	$codice =$_POST['codice'];
+
+    // Échapper les caractères spéciaux pour éviter les injections SQL (optionnel, mais recommandé)
+
+    // Effectuer la requête SQL pour vérifier si la valeur existe dans la table
+    $sql1 = "SELECT [idNiAnagrafica], [LabelCode], [ManufactureDate], [Qty], [ItemCode]
+            FROM [traceability].[dbo].[NIAnagrafica]
+            WHERE ItemCode = '$codice' AND LabelCode='$valeurRecherchee'";
+    $result1 = sqlsrv_query($connect, $sql1);
+
+    // Vérifier si la requête a retourné des résultats
+    if ($result1 && sqlsrv_has_rows($result1)) {
+        // La valeur existe dans la table
+        $message = "La valeur existe dans la table.";
+        $messageClass = "success"; // Classe Bootstrap pour succès
+        $isDisabled = ""; // Activer les autres champs
+    } else {
+        // La valeur n'existe pas dans la table
+        $message = "La valeur n'existe pas dans la table.";
+        $messageClass = "danger"; // Classe Bootstrap pour danger
+        $isDisabled = "disabled"; // Désactiver les autres champs
+    }
+
+    // Fermer la connexion à la base de données
+    sqlsrv_close($connect);
+}
+?>
